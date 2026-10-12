@@ -1,9 +1,9 @@
--- Bihar Board Test Portal Database
+--  Board Test Portal Database
 
 create table if not exists public.profiles (
   id uuid primary key references auth.users(id) on delete cascade,
   full_name text,
-  class_level integer check (class_level between 6 and 12),
+  class_level integerBihar check (class_level between 6 and 12),
   role text not null default 'student'
     check (role in ('student', 'teacher')),
   created_at timestamptz default now()
