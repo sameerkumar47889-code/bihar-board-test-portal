@@ -1,94 +1,101 @@
---  Board Test Portal Database
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>बिहार बोर्ड परीक्षा पोर्टल</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f4f7f6;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+        }
+        .quiz-container {
+            background-color: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            max-width: 600px;
+            width: 100%;
+        }
+        h1 {
+            color: #b71c1c;
+            text-align: center;
+            border-bottom: 2px solid #b71c1c;
+            padding-bottom: 10px;
+        }
+        .status-box {
+            background-color: #ffebee;
+            color: #c62828;
+            padding: 10px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            font-size: 14px;
+            font-weight: bold;
+        }
+        .question {
+            font-size: 18px;
+            margin-bottom: 15px;
+            font-weight: 600;
+        }
+        .options {
+            list-style-type: none;
+            padding: 0;
+        }
+        .options li {
+            background-color: #f0f0f0;
+            margin-bottom: 10px;
+            padding: 12px;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        .options li:hover {
+            background-color: #e0e0e0;
+        }
+        button {
+            display: block;
+            width: 100%;
+            background-color: #2e7d32;
+            color: white;
+            border: none;
+            padding: 12px;
+            font-size: 16px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-top: 20px;
+        }
+        button:hover {
+            background-color: #1b5e20;
+        }
+    </style>
+</head>
+<body>
 
-create table if not exists public.profiles (
-  id uuid primary key references auth.users(id) on delete cascade,
-  full_name text,
-  class_level integerBihar check (class_level between 6 and 12),
-  role text not null default 'student'
-    check (role in ('student', 'teacher')),
-  created_at timestamptz default now()
-);
+<div class="quiz-container">
+    <h1>बिहार बोर्ड ऑनलाइन टेस्ट पोर्टल</h1>
+    
+    <!-- डेमो सूचना बॉक्स -->
+    <div class="status-box">
+        ⚠️ महत्वपूर्ण: यह प्रारंभिक डेमो है। अभी केंद्रीय डेटाबेस और शिक्षक लॉगिन की सुविधा सक्रिय नहीं है। आपके अंक केवल इसी ब्राउज़र सत्र में दिखाई देंगे।
+    </div>
 
-create table if not exists public.subjects (
-  id bigint generated always as identity primary key,
-  class_level integer not null check (class_level between 6 and 12),
-  name text not null,
-  unique (class_level, name)
-);
+    <div class="quiz-area">
+        <div class="question">प्रश्न 1: बिहार की राजधानी कहाँ है?</div>
+        <ul class="options">
+            <li><input type="radio" name="q1" id="o1"> <label for="o1">पटना</label></li>
+            <li><input type="radio" name="q1" id="o2"> <label for="o2">गया</label></li>
+            <li><input type="radio" name="q1" id="o3"> <label for="o3">भागलपुर</label></li>
+            <li><input type="radio" name="q1" id="o4"> <label for="o4">मुजफ्फरपुर</label></li>
+        </ul>
+    </div>
 
-create table if not exists public.chapters (
-  id bigint generated always as identity primary key,
-  subject_id bigint not null references public.subjects(id) on delete cascade,
-  name text not null,
-  chapter_number integer,
-  unique (subject_id, chapter_number)
-);
+    <button onclick="alert('डेमो में उत्तर सबमिट करने के लिए धन्यवाद! जल्द ही स्कोर ट्रैकिंग जोड़ी जाएगी।')">उत्तर सबमिट करें</button>
+</div>
 
-create table if not exists public.questions (
-  id bigint generated always as identity primary key,
-  chapter_id bigint not null references public.chapters(id) on delete cascade,
-  question_text text not null,
-  option_a text not null,
-  option_b text not null,
-  option_c text not null,
-  option_d text not null,
-  correct_option text not null check (correct_option in ('A','B','C','D')),
-  explanation text,
-  published boolean not null default false
-);
+</body>
+  </html>
 
-create table if not exists public.test_attempts (
-  id bigint generated always as identity primary key,
-  student_id uuid not null references auth.users(id) on delete cascade,
-  class_level integer not null check (class_level between 6 and 12),
-  subject_id bigint references public.subjects(id),
-  score integer not null default 0 check (score >= 0),
-  total_questions integer not null default 0 check (total_questions >= 0),
-  created_at timestamptz default now()
-);
-
-create table if not exists public.attempt_answers (
-  id bigint generated always as identity primary key,
-  attempt_id bigint not null references public.test_attempts(id) on delete cascade,
-  question_id bigint not null references public.questions(id),
-  selected_option text check (selected_option in ('A','B','C','D')),
-  is_correct boolean not null default false,
-  unique (attempt_id, question_id)
-);
-
--- Enable RLS
-alter table public.profiles enable row level security;
-alter table public.subjects enable row level security;
-alter table public.chapters enable row level security;
-alter table public.questions enable row level security;
-alter table public.test_attempts enable row level security;
-alter table public.attempt_answers enable row level security;
-
--- Profile policies
-create policy "Read own profile"
-on public.profiles for select to authenticated
-using (auth.uid() = id);
-
-create policy "Create own student profile"
-on public.profiles for insert to authenticated
-with check (auth.uid() = id and role = 'student');
-
--- Test attempt policies
-create policy "Read own attempts"
-on public.test_attempts for select to authenticated
-using (auth.uid() = student_id);
-
-create policy "Create own attempts"
-on public.test_attempts for insert to authenticated
-with check (auth.uid() = student_id);
-
--- Read own answers
-create policy "Read own attempt answers"
-on public.attempt_answers for select to authenticated
-using (
-  exists (
-    select 1 from public.test_attempts t
-    where t.id = attempt_answers.attempt_id
-      and t.student_id = auth.uid()
-  )
-);
